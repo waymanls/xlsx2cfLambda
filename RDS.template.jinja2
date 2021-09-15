@@ -1,0 +1,46 @@
+{% extends "Server.template.jinja2"}
+{% block content %}
+########################################################################################
+#                                     DATABASES                                        #
+########################################################################################
+  RDSInstance:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL:
+        Fn::Join:
+        - '/'
+        - - !FindInMap [Endpoints, !Ref CloudEnvironment, S3]
+          - !Ref DevOpsBucket
+          - "cloudformation/templates/Databases.template"
+      TimeoutInMinutes: '60'
+      Parameters:
+        DBIdentifier: !Join ["-", [!Ref EnvironmentName, !Ref MissionOwner, !Ref InstanceName]]
+        InstanceType: !Ref InstanceType
+        EnvironmentName: !Ref EnvironmentName
+        DBEngine: !Ref DBEngine
+        DBEngineVersion: !Ref DBEngineVersion
+        DBStorageSize: !Ref RootVolSize
+        StorageType: gp2
+        AvailabilityZone: !Ref AvailabilityZone
+        Backups: !Ref Backups
+        DBSecurityGroup: !Ref SecurityGroup
+        DBSubnetId: !Ref SubnetId
+        DBPassword: !Ref DBPassword
+        DBUsername: !Ref DBUsername
+        MissionOwner: !Ref MissionOwner
+        Office: !Ref Office
+        Product: !Ref Product
+        WorkloadType: !Ref WorkloadType
+
+
+Outputs:
+  DBIdentifier:
+    Description: The RDS connection string
+    Value: !Ref RDSInstance
+  PrivateIp:
+    Description: The Instance PrivateIp
+    Value:
+      Fn::GetAtt:
+      - SimpleEC2Instance
+      - PrivateIp
+{% endblock %}
