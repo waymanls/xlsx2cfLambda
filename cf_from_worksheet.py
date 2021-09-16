@@ -9,6 +9,10 @@ from datetime import date
 from openpyxl import load_workbook
 from jinja2 import Environment, FileSystemLoader
 
+# Read in EC2 Resource block
+
+# Read in RDS Resource block
+
 def getDatafromSheet(spreadsheet, name, ticketNumber):
 	"""
 	Query spreadsheet for either hostname or Instance name and pull relevant fields
@@ -94,10 +98,12 @@ def genTemplate(spreadsheet):
 	# if resource is defined in spreadsheet include it in template, otherwise, don't
 	for row in EC2worksheet.iter_rows(min_row=2,values_only=True):
             if row[1] == 'EC2':
+                # Append to EC2 resource block to Resources template
                 #print(spreadsheet, row[0], workbook.active.title)
                 templateValues = getDatafromSheet(spreadsheet, row[0], workbook.active.title)
                 print(template.render(templateValues))
             #if row[1] == 'RDS':
+                # Append to RDS resource block to Resources template
                 #print("Generate RDS Resource Section")
 	# print(template.render(resourceDict))
 	# cfTemplate = template.render(resourceDict)

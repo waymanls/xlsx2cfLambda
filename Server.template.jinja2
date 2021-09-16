@@ -1,3 +1,5 @@
+{% extends "EC2.template.jinja2" %}
+{% block content %}
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Generic Server Template
 
@@ -229,5 +231,4 @@ Resources:
     Properties:
       Handle: !Ref CurrentStackWaitHandle
       Timeout: 900
-{% block content %}
 {% endblock content %}
