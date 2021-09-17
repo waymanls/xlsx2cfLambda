@@ -86,7 +86,6 @@ def getDatafromSheet(row, ticketNumber):
 
 	return resourceDict
 
-#def genTemplate(resourceDict):
 def genTemplate(spreadsheet):
 	"""
 	Generate Cloudformatin template using jinja2 using values from Spreadsheet
