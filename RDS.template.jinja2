@@ -1,5 +1,4 @@
-{% extends "Server.template.jinja2"}
-{% block content %}
+
 ########################################################################################
 #                                     DATABASES                                        #
 ########################################################################################
@@ -14,11 +13,11 @@
           - "cloudformation/templates/Databases.template"
       TimeoutInMinutes: '60'
       Parameters:
-        DBIdentifier: !Join ["-", [!Ref EnvironmentName, !Ref MissionOwner, !Ref InstanceName]]
-        InstanceType: !Ref InstanceType
+        DBIdentifier: !Join ["-", [!Ref EnvironmentName, !Ref MissionOwner, {{ InstanceName }}]]
+        InstanceType: {{ InstanceType }}
         EnvironmentName: !Ref EnvironmentName
-        DBEngine: !Ref DBEngine
-        DBEngineVersion: !Ref DBEngineVersion
+        DBEngine: {{ OS }}
+        DBEngineVersion: {{ Version }}
         DBStorageSize: !Ref RootVolSize
         StorageType: gp2
         AvailabilityZone: !Ref AvailabilityZone
