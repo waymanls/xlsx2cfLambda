@@ -2,6 +2,58 @@
 {% endblock content %}
 
 ########################################################################################
+#                                     DATABASES                                        #
+########################################################################################
+  sotc-db:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AutoMinorVersionUpgrade: false
+      Engine: Postgres
+      EngineVersion: 11.1
+      AllocatedStorage: 1200.0
+      StorageType: 
+      DBInstanceClass: db.r5.2xlarge
+      AvailabilityZone: us-east-1
+      BackupRetentionPeriod: 
+      DBInstanceIdentifier: sotc-db
+      VPCSecurityGroups: sg-0000000
+      DBSubnetGroupName: 
+      MasterUsername: 
+      MasterUserPassword: 
+      KmsKeyId: !If [IsEncrypted, !Ref BlockEncryptionKey, !Ref "AWS::NoValue"]
+      StorageEncrypted: !If [IsEncrypted, True, False]
+      LicenseModel: !If [IsSQLServer, "license-included", !Ref "AWS::NoValue"]
+      Tags:
+      - Key: Name
+        Value: sotc-db
+      - Key: Environment
+        Value: 
+      - Key: ArchitectureID
+        Value: ""
+      - Key: MissionOwner
+        Value: SOTD
+      - Key: Office
+        Value: SampleOffice
+      - Key: Product
+        Value: SampleProduct
+      - Key: WorkloadType
+        Value: 
+      - Key: Startup
+        Value: 700.0
+      - Key: Shutdown
+        Value: 2100.0
+      - Key: Schedule
+        Value: Always
+      - Key: ClapOn 
+        Value: 
+      - Key: ClapOff 
+        Value: 
+    DeletionPolicy: Snapshot
+Outputs:
+  DBConnectionString:
+    Description: Database Connection String
+    Value: !Join ['', [!GetAtt [sotc-db, Endpoint.Address], ':', !GetAtt [sotc-db, Endpoint.Port] ]]
+########################################################################################
 #                                     INSTANCES                                        #
 ########################################################################################
 

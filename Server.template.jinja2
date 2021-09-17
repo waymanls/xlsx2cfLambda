@@ -53,6 +53,15 @@ Parameters:
     Description: Default type of EC2 instance to launch
     Type: String
     Default: {{ InstanceType }}
+  Backups:
+    Description: RDS Backup length
+    Type: String
+    Default: {{ Backups }}
+  RootVolSize:
+  StorageType:
+    Description: Root Volume Storage Type
+    Type: String
+    Default: {{ StorageType }}
   RootVolSize:
     Description: Root Volume Size (GB)
     Type: String

@@ -94,6 +94,7 @@ def genTemplate(spreadsheet):
 	env = Environment(loader = FileSystemLoader('.'), trim_blocks=True, lstrip_blocks=True)
 	Servertemplate = env.get_template('Server.template.jinja2')
 	EC2template = env.get_template('EC2.template.jinja2')
+	RDStemplate = env.get_template('RDS.template.jinja2')
 	Template = ""
 	workbook = load_workbook(filename = spreadsheet)
 	EC2worksheet = workbook.active
@@ -101,18 +102,19 @@ def genTemplate(spreadsheet):
 	# Print each row, and generate a template based on the value in column
 	# if resource is defined in spreadsheet include it in template, otherwise, don't
 	for row in EC2worksheet.iter_rows(min_row=2,values_only=True):
+            templateValues = getDatafromSheet(row, workbook.active.title)
             if row[1] == 'EC2':
 				# Get values from spreadsheet
-                #templateValues = getDatafromSheet(spreadsheet, workbook.active.title)
-                templateValues = getDatafromSheet(row, workbook.active.title)
-                #print(row)
 				# Render EC2 Resource Block
                 EC2BlockTemplate = EC2template.render(templateValues)
                 # Append to EC2 resource block to Resources template
                 Template+=EC2BlockTemplate
-            #if row[1] == 'RDS':
-                # Append to RDS resource block to Resources template
-                # Template+=RDSBlock
+            if row[1] == 'RDS':
+				# Get values from spreadsheet
+				# Render EC2 Resource Block
+                RDSBlockTemplate = RDStemplate.render(templateValues)
+                # Append to EC2 resource block to Resources template
+                Template+=RDSBlockTemplate
 	with open('Final.template.jinja2', 'w') as f3:
 		f3.write("{% block content %}\n")
 		f3.write("{% endblock content %}\n")

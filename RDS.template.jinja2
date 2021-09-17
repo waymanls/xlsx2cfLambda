@@ -2,44 +2,52 @@
 ########################################################################################
 #                                     DATABASES                                        #
 ########################################################################################
-  RDSInstance:
-    Type: AWS::CloudFormation::Stack
+  {{ InstanceName }}:
+    Type: AWS::RDS::DBInstance
     Properties:
-      TemplateURL:
-        Fn::Join:
-        - '/'
-        - - !FindInMap [Endpoints, !Ref CloudEnvironment, S3]
-          - !Ref DevOpsBucket
-          - "cloudformation/templates/Databases.template"
-      TimeoutInMinutes: '60'
-      Parameters:
-        DBIdentifier: !Join ["-", [!Ref EnvironmentName, !Ref MissionOwner, {{ InstanceName }}]]
-        InstanceType: {{ InstanceType }}
-        EnvironmentName: !Ref EnvironmentName
-        DBEngine: {{ OS }}
-        DBEngineVersion: {{ Version }}
-        DBStorageSize: !Ref RootVolSize
-        StorageType: gp2
-        AvailabilityZone: !Ref AvailabilityZone
-        Backups: !Ref Backups
-        DBSecurityGroup: !Ref SecurityGroup
-        DBSubnetId: !Ref SubnetId
-        DBPassword: !Ref DBPassword
-        DBUsername: !Ref DBUsername
-        MissionOwner: !Ref MissionOwner
-        Office: !Ref Office
-        Product: !Ref Product
-        WorkloadType: !Ref WorkloadType
-
-
+      AutoMinorVersionUpgrade: false
+      Engine: {{ OS }}
+      EngineVersion: {{ Version }}
+      AllocatedStorage: {{ RootVolSize }}
+      StorageType: {{ StorageType }}
+      DBInstanceClass: {{ InstanceType }}
+      AvailabilityZone: {{ AvailabilityZone }}
+      BackupRetentionPeriod: {{ Backups }}
+      DBInstanceIdentifier: {{ InstanceName }}
+      VPCSecurityGroups: {{ SecurityGroup }}
+      DBSubnetGroupName: {{ SubnetId }}
+      MasterUsername: {{ Username }}
+      MasterUserPassword: {{ DBPassword }}
+      KmsKeyId: !If [IsEncrypted, !Ref BlockEncryptionKey, !Ref "AWS::NoValue"]
+      StorageEncrypted: !If [IsEncrypted, True, False]
+      LicenseModel: !If [IsSQLServer, "license-included", !Ref "AWS::NoValue"]
+      Tags:
+      - Key: Name
+        Value: {{ InstanceName }}
+      - Key: Environment
+        Value: {{ EnvironmentName }}
+      - Key: ArchitectureID
+        Value: ""
+      - Key: MissionOwner
+        Value: {{ MissionOwner }}
+      - Key: Office
+        Value: {{ Office }}
+      - Key: Product
+        Value: {{ Product }}
+      - Key: WorkloadType
+        Value: {{ WorkloadType }}
+      - Key: Startup
+        Value: {{ Startup }}
+      - Key: Shutdown
+        Value: {{ Shutdown }}
+      - Key: Schedule
+        Value: {{ Schedule }}
+      - Key: ClapOn 
+        Value: {{ ClapOn }}
+      - Key: ClapOff 
+        Value: {{ ClapOff }}
+    DeletionPolicy: Snapshot
 Outputs:
-  DBIdentifier:
-    Description: The RDS connection string
-    Value: !Ref RDSInstance
-  PrivateIp:
-    Description: The Instance PrivateIp
-    Value:
-      Fn::GetAtt:
-      - SimpleEC2Instance
-      - PrivateIp
-{% endblock %}
+  DBConnectionString:
+    Description: Database Connection String
+    Value: !Join ['', [!GetAtt [{{ InstanceName }}, Endpoint.Address], ':', !GetAtt [{{ InstanceName }}, Endpoint.Port] ]]
