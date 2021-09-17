@@ -1,10 +1,9 @@
-{% block content %}
-{% endblock content %}
+
 ########################################################################################
 #                                     INSTANCES                                        #
 ########################################################################################
 
-  SimpleEC2Instance:
+  {{ InstanceName }}
     Type: AWS::EC2::Instance
     Metadata:
       AWS::CloudFormation::Init:
@@ -31,7 +30,7 @@
                 Fn::Join:
                 - ''
                 - - 'powershell Rename-Computer -NewName '
-                  - !Ref Hostname
+                  - {{ Hostname }}
                   - ' -Restart;'
               waitAfterCompletion: forever
         cfn-hup-config:
@@ -156,12 +155,12 @@
                 - {EncodedHandle: {"Fn::Base64": !Ref CurrentStackWaitHandle}}
               waitAfterCompletion: 0
     Properties:
-      AvailabilityZone: !Ref AvailabilityZone
+      AvailabilityZone: {{ AvailabilityZone }}
       IamInstanceProfile: !Ref RoleName
       NetworkInterfaces:
         - DeviceIndex: '0'
-          GroupSet: !Ref SecurityGroup
-          SubnetId: !Ref SubnetId
+          GroupSet: {{ SecurityGroup }}
+          SubnetId: {{ SubnetId }}
       UserData:
         Fn::Base64: !Sub
           - |
@@ -170,7 +169,7 @@
               --verbose `
               --stack ${AWS::StackName} `
               --configsets ${InstanceConfig} `
-              --resource SimpleEC2Instance `
+              --resource {{ InstanceName }} `
               --role ${RoleName} `
               --region ${AWS::Region} `
               --url ${CFEndpoint}
@@ -187,14 +186,14 @@
             }
             </powershell>
           - {EncodedHandle: {"Fn::Base64": !Ref CurrentStackWaitHandle}}
-      InstanceType: !Ref InstanceType
+      InstanceType: {{ InstanceType }}
       KeyName: !Ref KeyName
       SourceDestCheck: 'false'
-      ImageId: !Ref AmiId
+      ImageId: {{ AmiId }}
       BlockDeviceMappings:
         - DeviceName: "/dev/sda1"
           Ebs:
-            VolumeSize: !Ref RootVolSize
+            VolumeSize: {{  RootVolSize }}
             VolumeType: gp2
             Encrypted: !If [IsRootEBSEncrypted, true, false]
             KmsKeyId: !If [IsRootEBSEncrypted, !Ref BlockEncryptionKey, !Ref "AWS::NoValue"]
@@ -210,74 +209,74 @@
             VolumeId: !Ref EBSVolume1
       Tags:
         - Key: Name
-          Value: !Ref InstanceName
+          Value: {{ InstanceName }}
         - Key: Hostname
-          Value: !Ref Hostname
+          Value: {{ Hostname }} 
         - Key: Environment
-          Value: !Ref EnvironmentName
+          Value: {{ Environment }}
         - Key: ArchitectureID
-          Value: ""
+          Value: {{ ArchitectureID }}
         - Key: MissionOwner
-          Value: !Ref MissionOwner
+          Value: {{  MissionOwner }}
         - Key: Office
-          Value: !Ref Office
+          Value: {{  Office }}
         - Key: Product
-          Value: !Ref Product
+          Value: {{  Product }}
         - Key: ServerType
-          Value: !Ref ServerType
+          Value: {{ ServerType }}
         - Key: Startup
-          Value: !Ref Startup
+          Value: {{ Startup }} 
         - Key: Shutdown
-          Value: !Ref Shutdown
+          Value: {{ Shutdown }} 
         - Key: Schedule
-          Value: !Ref Schedule
+          Value: {{ Schedule }} 
         - Key: JiraTicket 
           Value: !Ref JiraTicket
   EBSVolume1:
     Type: "AWS::EC2::Volume"
     Properties:
       AvailabilityZone: !Ref AvailabilityZone
-      Size: !Ref BlockSizeGB
+      Size: {{ RootVolSize }}
       VolumeType : gp2
       Encrypted: !If [IsEBSEncrypted, true, false]
       KmsKeyId: !If [IsEBSEncrypted, !Ref BlockEncryptionKey, !Ref "AWS::NoValue"]
       Tags:
         - Key: Name
-          Value: !Ref InstanceName
+          Value: {{ InstanceName }}
         - Key: MissionOwner
-          Value: !Ref MissionOwner
+          Value: {{ MissionOwner }}
         - Key: Office
-          Value: !Ref Office
+          Value: {{ Office }}
         - Key: Product
-          Value: !Ref Product
+          Value: {{ Product }}
   EBSVolume2:
     # Volume2 is only created based on a parameter set in the parameter file.
     # And encrypted of other conditions are met.  
     Condition: IsAddVol
     Type: "AWS::EC2::Volume"
     Properties:
-      AvailabilityZone: !Ref AvailabilityZone
-      Size: !Ref AdditionalVolSize
+      AvailabilityZone: {{ AvailabilityZone }}
+      Size: {{ AdditionalVolSize }}
       VolumeType : gp2
       Encrypted: !If [IsEBSEncrypted, true, false]
       KmsKeyId: !If [IsEBSEncrypted, !Ref BlockEncryptionKey, !Ref "AWS::NoValue"]
       Tags:
         - Key: Name
-          Value: !Ref InstanceName
+          Value: {{ InstanceName }}
         - Key: MissionOwner
-          Value: !Ref MissionOwner
+          Value: {{ MissionOwner }}
         - Key: Office
-          Value: !Ref Office
+          Value: {{ Office }}
         - Key: Product
-          Value: !Ref Product
+          Value: {{ Product }}
 
 Outputs:
   InstanceId:
     Description: The Instance ID
-    Value: !Ref SimpleEC2Instance
+    Value: {{ InstanceName }}
   PrivateIp:
     Description: The Instance PrivateIp
     Value:
       Fn::GetAtt:
-      - SimpleEC2Instance
+      - {{ InstanceName }}
       - PrivateIp

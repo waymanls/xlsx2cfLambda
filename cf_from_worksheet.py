@@ -2,6 +2,7 @@
 import os
 import sys
 import json
+from jinja2.environment import Template
 import yaml
 import boto3
 import argparse
@@ -10,44 +11,45 @@ from openpyxl import load_workbook
 from jinja2 import Environment, FileSystemLoader
 
 # Read in EC2 Resource block
-
+with open("EC2.template.jinja2", 'r') as f:
+	EC2Block = f.read()
 # Read in RDS Resource block
+with open("RDS.template.jinja2", 'r') as f1:
+	RDSBlock = f1.read()
 
-def getDatafromSheet(spreadsheet, name, ticketNumber):
+def getDatafromSheet(row, ticketNumber):
 	"""
 	Query spreadsheet for either hostname or Instance name and pull relevant fields
 	"""
-	workbook = load_workbook(filename = spreadsheet)
-	resourceName = name
+	#workbook = load_workbook(filename = spreadsheet)
 	resourceDict = {}
-	EC2worksheet = workbook.active
-	session = boto3.session.Session()
-	print("Hello world")
+	#EC2worksheet = workbook.active
+	#session = boto3.session.Session()
 
-	for row in EC2worksheet.iter_rows(min_row=2,values_only=True):
-		resourceDict['ServerType'] = row[0]
-		resourceDict['ResourceType'] = row[1]
-		resourceDict['ArchitectureID'] = row[2]
-		resourceDict['AvailabilityZone'] = row[3]
-		resourceDict['AmiId'] = row[4]
-		resourceDict['OS'] = row[5]
-		resourceDict['Version'] = row[6]
-		resourceDict['InstanceType'] = row[7]
-		resourceDict['RootVolSize'] = row[8]
-		resourceDict['CloudEnvironment'] = row[9]
-		resourceDict['Subnet'] = row[10]
-		resourceDict['Environment'] = row[11]
-		resourceDict['InstanceName'] = row[12]
-		resourceDict['Hostname'] = row[13]
-		resourceDict['WebAdaptorName'] = row[14]
-		resourceDict['AdditionalVolSize'] = row[15]
-		resourceDict['MissionOwner'] = row[16]
-		resourceDict['Office'] = row[17]
-		resourceDict['Product'] = row[18]
-		resourceDict['Startup'] = row[19]
-		resourceDict['Shutdown'] = row[20]
-		resourceDict['Scheduled'] = row[21]
-		resourceDict['SecurityGroup'] = row[22]
+	#for row in EC2worksheet.iter_rows(min_row=2,values_only=True):
+	resourceDict['ServerType'] = row[0]
+	resourceDict['ResourceType'] = row[1]
+	resourceDict['ArchitectureID'] = row[2]
+	resourceDict['AvailabilityZone'] = row[3]
+	resourceDict['AmiId'] = row[4]
+	resourceDict['OS'] = row[5]
+	resourceDict['Version'] = row[6]
+	resourceDict['InstanceType'] = row[7]
+	resourceDict['RootVolSize'] = row[8]
+	resourceDict['CloudEnvironment'] = row[9]
+	resourceDict['Subnet'] = row[10]
+	resourceDict['Environment'] = row[11]
+	resourceDict['InstanceName'] = row[12]
+	resourceDict['Hostname'] = row[13]
+	resourceDict['WebAdaptorName'] = row[14]
+	resourceDict['AdditionalVolSize'] = row[15]
+	resourceDict['MissionOwner'] = row[16]
+	resourceDict['Office'] = row[17]
+	resourceDict['Product'] = row[18]
+	resourceDict['Startup'] = row[19]
+	resourceDict['Shutdown'] = row[20]
+	resourceDict['Schedule'] = row[21]
+	resourceDict['SecurityGroup'] = row[22]
 #		if name == row[9] or name == row[10]:
 #			resourceDict['Domain'] = row[0]
 #			resourceDict['Environment'] = row[1]
@@ -90,7 +92,9 @@ def genTemplate(spreadsheet):
 	Generate Cloudformatin template using jinja2 using values from Spreadsheet
 	"""
 	env = Environment(loader = FileSystemLoader('.'), trim_blocks=True, lstrip_blocks=True)
-	template = env.get_template('Server.template.jinja2')
+	Servertemplate = env.get_template('Server.template.jinja2')
+	EC2template = env.get_template('EC2.template.jinja2')
+	Template = ""
 	workbook = load_workbook(filename = spreadsheet)
 	EC2worksheet = workbook.active
 	#print(EC2worksheet['B2'].value)
@@ -98,15 +102,24 @@ def genTemplate(spreadsheet):
 	# if resource is defined in spreadsheet include it in template, otherwise, don't
 	for row in EC2worksheet.iter_rows(min_row=2,values_only=True):
             if row[1] == 'EC2':
+				# Get values from spreadsheet
+                #templateValues = getDatafromSheet(spreadsheet, workbook.active.title)
+                templateValues = getDatafromSheet(row, workbook.active.title)
+                #print(row)
+				# Render EC2 Resource Block
+                EC2BlockTemplate = EC2template.render(templateValues)
                 # Append to EC2 resource block to Resources template
-                #print(spreadsheet, row[0], workbook.active.title)
-                templateValues = getDatafromSheet(spreadsheet, row[0], workbook.active.title)
-                print(template.render(templateValues))
+                Template+=EC2BlockTemplate
             #if row[1] == 'RDS':
                 # Append to RDS resource block to Resources template
-                #print("Generate RDS Resource Section")
-	# print(template.render(resourceDict))
-	# cfTemplate = template.render(resourceDict)
+                # Template+=RDSBlock
+	with open('Final.template.jinja2', 'w') as f3:
+		f3.write("{% block content %}\n")
+		f3.write("{% endblock content %}\n")
+		f3.write(Template)
+		f3.write("\n")
+	cfTemplate = Servertemplate.render(templateValues)
+	print(cfTemplate)
 
 	#return cfTemplate
 
@@ -138,7 +151,8 @@ def main():
 	parser = argparse.ArgumentParser(description="Tool to create server from spreadsheet via CloudFormation")
 	parser.add_argument('-S', '--spreadsheet', help='Path to spreadsheet') 	
 	args = parser.parse_args()
-	cfTemplate = genTemplate(args.spreadsheet)
+	#cfTemplate = genTemplate(args.spreadsheet)
+	cfTemplate = genTemplate('FG-47856.xlsx')
 
 if __name__ == '__main__':
 	main()
