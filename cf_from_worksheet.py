@@ -2,10 +2,11 @@
 import os
 import sys
 import json
-from jinja2.environment import Template
 import yaml
 import boto3
+import botocore.exceptions
 import argparse
+from jinja2.environment import Template
 from datetime import date
 from openpyxl import load_workbook
 from jinja2 import Environment, FileSystemLoader
@@ -35,21 +36,25 @@ def getDatafromSheet(row, ticketNumber):
 	resourceDict['OS'] = row[5]
 	resourceDict['Version'] = row[6]
 	resourceDict['InstanceType'] = row[7]
-	resourceDict['RootVolSize'] = row[8]
-	resourceDict['CloudEnvironment'] = row[9]
-	resourceDict['Subnet'] = row[10]
-	resourceDict['Environment'] = row[11]
-	resourceDict['InstanceName'] = row[12]
-	resourceDict['Hostname'] = row[13]
-	resourceDict['WebAdaptorName'] = row[14]
-	resourceDict['AdditionalVolSize'] = row[15]
-	resourceDict['MissionOwner'] = row[16]
-	resourceDict['Office'] = row[17]
-	resourceDict['Product'] = row[18]
-	resourceDict['Startup'] = row[19]
-	resourceDict['Shutdown'] = row[20]
-	resourceDict['Schedule'] = row[21]
-	resourceDict['SecurityGroup'] = row[22]
+	resourceDict['StorageType'] = row[8]
+	resourceDict['Backups'] = row[9]
+	resourceDict['RootVolSize'] = row[10]
+	resourceDict['CloudEnvironment'] = row[11]
+	resourceDict['SubnetId'] = row[12]
+	resourceDict['Environment'] = row[13]
+	resourceDict['InstanceName'] = row[14]
+	resourceDict['Hostname'] = row[15]
+	resourceDict['WebAdaptorName'] = row[16]
+	resourceDict['AdditionalVolSize'] = row[17]
+	resourceDict['MissionOwner'] = row[18]
+	resourceDict['Office'] = row[19]
+	resourceDict['Product'] = row[20]
+	resourceDict['Startup'] = row[21]
+	resourceDict['Shutdown'] = row[22]
+	resourceDict['Schedule'] = row[23]
+	resourceDict['SecurityGroup'] = row[24]
+	resourceDict['WorkloadType'] = row[25]
+	resourceDict['JiraTicket'] = ticketNumber
 #		if name == row[9] or name == row[10]:
 #			resourceDict['Domain'] = row[0]
 #			resourceDict['Environment'] = row[1]
@@ -122,25 +127,24 @@ def genTemplate(spreadsheet):
 	cfTemplate = Servertemplate.render(templateValues)
 	print(cfTemplate)
 
-	#return cfTemplate
+	return cfTemplate
 
-def buildStack(cfTemplate,ticketNumber,resourceName):
+def buildStack(cfTemplate):
 	"""
 	Create CloudFormation stack using template generated in genTemplate()
 	"""
-	stackName = resourceName + "-" + ticketNumber + "-" + str(date.today())
+	stackName = 'foobar'
 	client = boto3.client('cloudformation')
-	parameterFile = open("GovCloud-Automation-Test-Servers.json","r")
-	params = json.load(parameterFile)
-	response = client.create_stack(StackName=stackName,TemplateBody=cfTemplate,DisableRollback=True,Parameters=params)
-	print("==============================================================================")
-	print("                                  SUCCESS                                     ")
-	print("==============================================================================")
-	print("Stack has been created, please track progress in CloudFormation Web Console")
-	print("==============================================================================")
-	print(response['StackId'])
-	print("==============================================================================")
-	parameterFile.close()
+	#parameterFile = open("GovCloud-Automation-Test-Servers.json","r")
+	#params = json.load(parameterFile)
+	#response = client.create_stack(StackName=stackName,TemplateBody=cfTemplate,DisableRollback=True)
+	try:
+	    response = client.validate_template(TemplateBody=cfTemplate)
+	    response = client.create_stack(StackName=stackName,TemplateBody=cfTemplate,DisableRollback=True)
+	except botocore.exceptions.ClientError as err:
+	    print(err)
+	except ValidationError as e:
+	    print(e)
 
 def fileCheck():
 	"""
@@ -154,6 +158,7 @@ def main():
 	args = parser.parse_args()
 	#cfTemplate = genTemplate(args.spreadsheet)
 	cfTemplate = genTemplate('FG-47856.xlsx')
+	buildStack(cfTemplate)
 
 if __name__ == '__main__':
 	main()

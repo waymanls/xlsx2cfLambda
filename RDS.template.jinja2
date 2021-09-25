@@ -7,6 +7,7 @@
     Properties:
       AutoMinorVersionUpgrade: false
       Engine: {{ OS }}
+      EnvironmentName: {{ Environment }}
       EngineVersion: {{ Version }}
       AllocatedStorage: {{ RootVolSize }}
       StorageType: {{ StorageType }}
@@ -16,8 +17,18 @@
       DBInstanceIdentifier: {{ InstanceName }}
       VPCSecurityGroups: {{ SecurityGroup }}
       DBSubnetGroupName: {{ SubnetId }}
-      MasterUsername: {{ Username }}
-      MasterUserPassword: {{ DBPassword }}
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      ArchitectureID: {{ ArchitectureID }}
+      MissionOwner: {{ MissionOwner }}
+      Office: {{ Office }}
+      Product: {{ Product }}
+      WorkloadType: {{ WorkloadType }}
+      Startup: {{ Startup }}
+      Shutdown: {{ Shutdown }}
+      Schedule: {{ Schedule }}
+      ClapOn: 700
+      ClapOff: 2100
       KmsKeyId: !If [IsEncrypted, !Ref BlockEncryptionKey, !Ref "AWS::NoValue"]
       StorageEncrypted: !If [IsEncrypted, True, False]
       LicenseModel: !If [IsSQLServer, "license-included", !Ref "AWS::NoValue"]
@@ -25,9 +36,9 @@
       - Key: Name
         Value: {{ InstanceName }}
       - Key: Environment
-        Value: {{ EnvironmentName }}
+        Value: {{ Environment }}
       - Key: ArchitectureID
-        Value: ""
+        Value: {{ ArchitectureID }}
       - Key: MissionOwner
         Value: {{ MissionOwner }}
       - Key: Office
@@ -43,11 +54,7 @@
       - Key: Schedule
         Value: {{ Schedule }}
       - Key: ClapOn 
-        Value: {{ ClapOn }}
+        Value: !Ref ClapOn
       - Key: ClapOff 
-        Value: {{ ClapOff }}
+        Value: !Ref ClapOff
     DeletionPolicy: Snapshot
-Outputs:
-  DBConnectionString:
-    Description: Database Connection String
-    Value: !Join ['', [!GetAtt [{{ InstanceName }}, Endpoint.Address], ':', !GetAtt [{{ InstanceName }}, Endpoint.Port] ]]

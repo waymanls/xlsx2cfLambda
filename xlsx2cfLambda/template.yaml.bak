@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  xlsx2cfLambda
+
+  Sample SAM Template for xlsx2cfLambda
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: hello_world/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Policies:
+      - Statement:
+        - Sid: xlsx2cfS3Policy
+          Effect: Allow
+          Action:
+          - s3:GetObject
+          - s3:PutObject
+          Resource: 'arn:aws:s3:::qtcvoo/*'
+      - Statement:
+        - Sid: xlsx2cfCreateLogGroupPolicy
+          Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          Resource: 'arn:aws:logs:us-east-1:490874705518:*'
+      - Statement:
+        - Sid: xlsx2cfCreateLogStreamPolicy
+          Effect: Allow
+          Action:
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: 'arn:aws:logs:us-east-1:490874705518:log-group:/aws/lambda/*'
+      - Statement:
+        - Sid: xlsx2cfDescribeSGsPolicy
+          Effect: Allow
+          Action:
+          - ec2:DescribeSecurityGroups
+          - logs:PutLogEvents
+          Resource: '*'
+      - Statement:
+        - Sid: xlsx2cfCloudFormationPolicy
+          Effect: Allow
+          Action:
+          - cloudformation:*
+          Resource: '*'
+      Events:
+        ObjectPutEvent:
+          Type: S3 # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Bucket: !Ref Bucket
+            Events: s3:ObjectCreated:Put
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "qtcvoo1"
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  HelloWorldFunction:
+    Description: "Hello World Lambda Function ARN"
+    Value: !GetAtt HelloWorldFunction.Arn
+  HelloWorldFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt HelloWorldFunctionRole.Arn

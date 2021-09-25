@@ -4,32 +4,43 @@
 ########################################################################################
 #                                     DATABASES                                        #
 ########################################################################################
-  sotc-db:
+  sotcdb:
     Type: AWS::RDS::DBInstance
     Properties:
       AutoMinorVersionUpgrade: false
       Engine: Postgres
+      EnvironmentName: TP1
       EngineVersion: 11.1
       AllocatedStorage: 1200.0
-      StorageType: 
+      StorageType: gp2
       DBInstanceClass: db.r5.2xlarge
       AvailabilityZone: us-east-1
-      BackupRetentionPeriod: 
-      DBInstanceIdentifier: sotc-db
+      BackupRetentionPeriod: 7.0
+      DBInstanceIdentifier: sotcdb
       VPCSecurityGroups: sg-0000000
-      DBSubnetGroupName: 
-      MasterUsername: 
-      MasterUserPassword: 
+      DBSubnetGroupName: subnet-0000000
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      ArchitectureID: xx-sd2a:d
+      MissionOwner: SOTD
+      Office: SampleOffice
+      Product: SampleProduct
+      WorkloadType: aaaa
+      Startup: 700.0
+      Shutdown: 2100.0
+      Schedule: Always
+      ClapOn: 700
+      ClapOff: 2100
       KmsKeyId: !If [IsEncrypted, !Ref BlockEncryptionKey, !Ref "AWS::NoValue"]
       StorageEncrypted: !If [IsEncrypted, True, False]
       LicenseModel: !If [IsSQLServer, "license-included", !Ref "AWS::NoValue"]
       Tags:
       - Key: Name
-        Value: sotc-db
+        Value: sotcdb
       - Key: Environment
-        Value: 
+        Value: TP1
       - Key: ArchitectureID
-        Value: ""
+        Value: xx-sd2a:d
       - Key: MissionOwner
         Value: SOTD
       - Key: Office
@@ -37,7 +48,7 @@
       - Key: Product
         Value: SampleProduct
       - Key: WorkloadType
-        Value: 
+        Value: aaaa
       - Key: Startup
         Value: 700.0
       - Key: Shutdown
@@ -45,19 +56,15 @@
       - Key: Schedule
         Value: Always
       - Key: ClapOn 
-        Value: 
+        Value: !Ref ClapOn
       - Key: ClapOff 
-        Value: 
+        Value: !Ref ClapOff
     DeletionPolicy: Snapshot
-Outputs:
-  DBConnectionString:
-    Description: Database Connection String
-    Value: !Join ['', [!GetAtt [sotc-db, Endpoint.Address], ':', !GetAtt [sotc-db, Endpoint.Port] ]]
 ########################################################################################
 #                                     INSTANCES                                        #
 ########################################################################################
 
-  uc-tp1-sotd-pub-01
+  uctp1sotdpub01:
     Type: AWS::EC2::Instance
     Metadata:
       AWS::CloudFormation::Init:
@@ -84,7 +91,7 @@ Outputs:
                 Fn::Join:
                 - ''
                 - - 'powershell Rename-Computer -NewName '
-                  - uc-tp1-sotd-pub-01
+                  - uctp1sotdpub01
                   - ' -Restart;'
               waitAfterCompletion: forever
         cfn-hup-config:
@@ -100,8 +107,8 @@ Outputs:
               content: !Sub |
                 [cfn-auto-reloader-hook]
                 triggers=post.update
-                path=Resources.SimpleEC2Instance.Metadata.AWS::CloudFormation::Init
-                action=cfn-init.exe --verbose --configsets updatable-only --region ${AWS::Region} --resource SimpleEC2Instance --role ${RoleName} --stack ${AWS::StackId} --url ${CFEndpoint}
+                path=Resources.uctp1sotdpub01.Metadata.AWS::CloudFormation::Init
+                action=cfn-init.exe --verbose --configsets updatable-only --region ${AWS::Region} --resource uctp1sotdpub01 --role ${RoleName} --stack ${AWS::StackId} --url ${CFEndpoint}
           services:
             windows:
               cfn-hup:
@@ -214,7 +221,7 @@ Outputs:
       NetworkInterfaces:
         - DeviceIndex: '0'
           GroupSet: sg-1111111
-          SubnetId: 
+          SubnetId: subnet-1111111
       UserData:
         Fn::Base64: !Sub
           - |
@@ -223,7 +230,7 @@ Outputs:
               --verbose `
               --stack ${AWS::StackName} `
               --configsets ${InstanceConfig} `
-              --resource uc-tp1-sotd-pub-01 `
+              --resource uctp1sotdpub01 `
               --role ${RoleName} `
               --region ${AWS::Region} `
               --url ${CFEndpoint}
@@ -263,9 +270,9 @@ Outputs:
             VolumeId: !Ref EBSVolume1
       Tags:
         - Key: Name
-          Value: uc-tp1-sotd-pub-01
+          Value: uctp1sotdpub01
         - Key: Hostname
-          Value: uc-tp1-sotd-pub-01 
+          Value: uctp1sotdpub01 
         - Key: Environment
           Value: TP1
         - Key: ArchitectureID
@@ -296,7 +303,7 @@ Outputs:
       KmsKeyId: !If [IsEBSEncrypted, !Ref BlockEncryptionKey, !Ref "AWS::NoValue"]
       Tags:
         - Key: Name
-          Value: uc-tp1-sotd-pub-01
+          Value: uctp1sotdpub01
         - Key: MissionOwner
           Value: SOTD
         - Key: Office
@@ -316,7 +323,7 @@ Outputs:
       KmsKeyId: !If [IsEBSEncrypted, !Ref BlockEncryptionKey, !Ref "AWS::NoValue"]
       Tags:
         - Key: Name
-          Value: uc-tp1-sotd-pub-01
+          Value: uctp1sotdpub01
         - Key: MissionOwner
           Value: SOTD
         - Key: Office
@@ -324,21 +331,11 @@ Outputs:
         - Key: Product
           Value: SampleProduct
 
-Outputs:
-  InstanceId:
-    Description: The Instance ID
-    Value: uc-tp1-sotd-pub-01
-  PrivateIp:
-    Description: The Instance PrivateIp
-    Value:
-      Fn::GetAtt:
-      - uc-tp1-sotd-pub-01
-      - PrivateIp
 ########################################################################################
 #                                     INSTANCES                                        #
 ########################################################################################
 
-  uc-tp1-sotd-ags-01
+  uctp1sotdags01:
     Type: AWS::EC2::Instance
     Metadata:
       AWS::CloudFormation::Init:
@@ -365,7 +362,7 @@ Outputs:
                 Fn::Join:
                 - ''
                 - - 'powershell Rename-Computer -NewName '
-                  - uc-tp1-sotd-ags-01
+                  - uctp1sotdags01
                   - ' -Restart;'
               waitAfterCompletion: forever
         cfn-hup-config:
@@ -381,8 +378,8 @@ Outputs:
               content: !Sub |
                 [cfn-auto-reloader-hook]
                 triggers=post.update
-                path=Resources.SimpleEC2Instance.Metadata.AWS::CloudFormation::Init
-                action=cfn-init.exe --verbose --configsets updatable-only --region ${AWS::Region} --resource SimpleEC2Instance --role ${RoleName} --stack ${AWS::StackId} --url ${CFEndpoint}
+                path=Resources.uctp1sotdags01.Metadata.AWS::CloudFormation::Init
+                action=cfn-init.exe --verbose --configsets updatable-only --region ${AWS::Region} --resource uctp1sotdags01 --role ${RoleName} --stack ${AWS::StackId} --url ${CFEndpoint}
           services:
             windows:
               cfn-hup:
@@ -495,7 +492,7 @@ Outputs:
       NetworkInterfaces:
         - DeviceIndex: '0'
           GroupSet: sg-2222222
-          SubnetId: 
+          SubnetId: subnet-2222222
       UserData:
         Fn::Base64: !Sub
           - |
@@ -504,7 +501,7 @@ Outputs:
               --verbose `
               --stack ${AWS::StackName} `
               --configsets ${InstanceConfig} `
-              --resource uc-tp1-sotd-ags-01 `
+              --resource uctp1sotdags01 `
               --role ${RoleName} `
               --region ${AWS::Region} `
               --url ${CFEndpoint}
@@ -544,9 +541,9 @@ Outputs:
             VolumeId: !Ref EBSVolume1
       Tags:
         - Key: Name
-          Value: uc-tp1-sotd-ags-01
+          Value: uctp1sotdags01
         - Key: Hostname
-          Value: uc-tp1-sotd-ags-01 
+          Value: uctp1sotdags01 
         - Key: Environment
           Value: TP1
         - Key: ArchitectureID
@@ -577,7 +574,7 @@ Outputs:
       KmsKeyId: !If [IsEBSEncrypted, !Ref BlockEncryptionKey, !Ref "AWS::NoValue"]
       Tags:
         - Key: Name
-          Value: uc-tp1-sotd-ags-01
+          Value: uctp1sotdags01
         - Key: MissionOwner
           Value: SOTD
         - Key: Office
@@ -597,7 +594,7 @@ Outputs:
       KmsKeyId: !If [IsEBSEncrypted, !Ref BlockEncryptionKey, !Ref "AWS::NoValue"]
       Tags:
         - Key: Name
-          Value: uc-tp1-sotd-ags-01
+          Value: uctp1sotdags01
         - Key: MissionOwner
           Value: SOTD
         - Key: Office
@@ -605,13 +602,3 @@ Outputs:
         - Key: Product
           Value: SampleProduct
 
-Outputs:
-  InstanceId:
-    Description: The Instance ID
-    Value: uc-tp1-sotd-ags-01
-  PrivateIp:
-    Description: The Instance PrivateIp
-    Value:
-      Fn::GetAtt:
-      - uc-tp1-sotd-ags-01
-      - PrivateIp

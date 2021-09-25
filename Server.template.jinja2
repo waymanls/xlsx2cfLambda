@@ -13,7 +13,7 @@ Parameters:
   CloudEnvironment:
     Type: String
     AllowedValues: [GovCloud, UC2S, SC2S, C2S]
-    Default: {{ Domain }}
+    Default: {{ CloudEnvironment }}
   SubnetId:
     Description: id of the Subnet to deploy into
     Type: String
@@ -27,10 +27,12 @@ Parameters:
   DevOpsBucket:
     Description: Cloudformation S3 Bucket
     Type: String
+    Default: ParameterStore
 # Make this a map or parameter store
   SoftwareBucket:
     Description: S3 bucket containing software installers
     Type: String
+    Default: ParameterStore
   InstanceName:
     Description: Description of the server for tag
     Type: String
@@ -45,10 +47,12 @@ Parameters:
   EnvironmentSize:
     Description: Mapping parameter that determines instance type
     Type: String
+    Default: ParameterStore
 # Delete this
   InstanceConfig:
     Description: Description of the server for tag
     Type: String
+    Default: ParameterStore
   InstanceType:
     Description: Default type of EC2 instance to launch
     Type: String
@@ -89,6 +93,7 @@ Parameters:
   KeyName:
     Description: Name of the Key for ssh host connections
     Type: String
+    Default: ParameterStore
   SecurityGroup:
     Description: Security group ID for this instance
     Type: List<AWS::EC2::SecurityGroup::Id>
@@ -102,41 +107,49 @@ Parameters:
     Description: The domain to join the machine to
     Type: String
     MinLength: 1
+    Default: ParameterStore
 # Make this a map or parameter store
   DomainController:
     Description: The server addresses for joining the domain
     Type: String
     MinLength: 1
+    Default: ParameterStore
 # Make this a map or parameter store
   OuPath:
     Description: The organizational unit for the domain account
     Type: String
     MinLength: 1
+    Default: ParameterStore
 # Make this a map or parameter store
   ExploitDomainAccount:
     Description: Your exploit domain administrator account
     Type: String
     MinLength: 1
+    Default: ParameterStore
 # Make this a map or parameter store
-#  ExploitDomainAccountPW:
-#    Description: Password for your exploit domain administrator account
-#    Type: String
-#    NoEcho: true
-#    MinLength: 1
+  ExploitDomainAccountPW:
+    Description: Password for your exploit domain administrator account
+    Type: String
+    NoEcho: true
+    MinLength: 1
+    Default: ParameterStore
 # Make this a map or parameter store
   CFEndpoint:
     Description: CloudFormation Endpoint
     Type: String
     MinLength: 1
+    Default: ParameterStore
 # Make this a map or parameter store
   RoleName:
     Description: IAM Instance Role/Profile to attach to instance
     Type: String
     MinLength: 1
+    Default: ParameterStore
   ChefRole:
     Description: Role for chef rules
     Type: String
     MinLength: 1
+    Default: ParameterStore
   MissionOwner:
     Description: Server owner based on mission
     Type: String
@@ -170,7 +183,7 @@ Parameters:
   Schedule:
     Description: describes the current schedule state; Off, Scheduled, AlwaysOn.
     Type: String
-    AllowedValues : [Off, Scheduled, AlwaysOn]
+    AllowedValues : [SatSun, MonTueWedThuFri, Off, Scheduled, AlwaysOn]
     MinLength: 1
     Default: {{ Schedule }}
   JiraTicket:
@@ -195,24 +208,34 @@ Parameters:
   DBUsername:
     Description: Database Username
     Type: String
-    Default: {{ Username }}
+    Default: foobar
   DBPassword:
     Description: Database Password
     Type: String
     NoEcho: true
-    Default: {{ Password }}
+    Default: foobar
   Backups:
     Description: Number of days back to perform automated backups
     Type: String
     Default: 7
+  ClapOn:
+    Description: Database Workload Type (general, publication, production, etc)
+    Type: String
+    Default: 700
+  ClapOff:
+    Description: Database Workload Type (general, publication, production, etc)
+    Type: String
+    Default: 2100
   WorkloadType:
     Description: Database Workload Type (general, publication, production, etc)
     Type: String
-    Default: general
+    Default: {{ WorkloadType }}
 
 Conditions:
   IsGovCloud: !Equals [!Ref CloudEnvironment, GovCloud]
+  IsSQLServer: !Equals [!Ref DBEngine, sqlserver-ee]
   IsEBSEncrypted: !Not [!Equals [!Ref BlockEncryptionKey, None]]
+  IsEncrypted: !Not [!Equals [!Ref BlockEncryptionKey, None]]
   IsAddVol: !Equals [!Ref AdditionalVol, true]
   IsRootEBSEncrypted: !And [!Equals [!Ref RootEBSEnc, true], !Condition IsEBSEncrypted]
 
@@ -236,7 +259,7 @@ Resources:
     Type: AWS::CloudFormation::WaitConditionHandle
   CurrentStackWaitCondition:
     Type: AWS::CloudFormation::WaitCondition
-    DependsOn: SimpleEC2Instance
+    DependsOn: {{ InstanceName }}
     Properties:
       Handle: !Ref CurrentStackWaitHandle
       Timeout: 900
