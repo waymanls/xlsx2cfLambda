@@ -12,8 +12,6 @@ from datetime import date
 from openpyxl import load_workbook
 from jinja2 import Environment, FileSystemLoader
 
-print('Loading function')
-
 s3 = boto3.client('s3')
 s33 = boto3.resource('s3')
 
@@ -95,6 +93,7 @@ def buildStack(cfTemplate,jiraTicket):
 	"""
 	Create CloudFormation stack using template generated in genTemplate()
 	"""
+
 	client = boto3.client('cloudformation')
 	stack_name = jiraTicket + '-' + date.isoformat(date.today())
 	try:
