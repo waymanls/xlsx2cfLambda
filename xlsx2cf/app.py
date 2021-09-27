@@ -85,7 +85,6 @@ def genTemplate(spreadsheet):
 		f3.write(Template)
 		f3.write("\n")
 	cfTemplate = Servertemplate.render(templateValues)
-	s3.put_object(Body=cfTemplate,Bucket='qtcvoo',Key='spreadsheets/Final.template.yaml')
 
 	return cfTemplate, workbook.active.title
 

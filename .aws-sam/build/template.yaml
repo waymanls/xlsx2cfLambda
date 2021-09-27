@@ -7,7 +7,7 @@ Description: 'xlsx2cfLambda
   '
 Globals:
   Function:
-    Timeout: 3
+    Timeout: 300
 Resources:
   xlsx2cfFunction:
     Type: AWS::Serverless::Function
@@ -23,8 +23,7 @@ Resources:
           Effect: Allow
           Action:
           - s3:GetObject
-          - s3:PutObject
-          Resource: arn:aws:s3:::qtcvoo/*
+          Resource: arn:aws:s3:::qtcvoo1/*
         - Sid: xlsx2cfCreateLogGroupPolicy
           Effect: Allow
           Action:
@@ -53,7 +52,7 @@ Resources:
           Properties:
             Bucket:
               Ref: Bucket
-            Events: s3:ObjectCreated:Put
+            Events: s3:ObjectCreated:*
   Bucket:
     Type: AWS::S3::Bucket
     Properties:
