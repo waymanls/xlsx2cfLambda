@@ -1,0 +1,266 @@
+{% extends "Final.template.jinja2" %}
+{% block content %}
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Generic Server Template
+
+Parameters:
+  ArchitectureID:
+    Type: String
+    Default: {{ ArchitectureID }}
+  AvailabilityZone:
+    Type: String
+    Default: {{ AvailabilityZone }}
+  CloudEnvironment:
+    Type: String
+    AllowedValues: [GovCloud, UC2S, SC2S, C2S]
+    Default: {{ CloudEnvironment }}
+  SubnetId:
+    Description: id of the Subnet to deploy into
+    Type: String
+    Default: {{ SubnetId }}
+  EnvironmentName:
+    Description: Name of the Environment
+    Type: String
+    AllowedValues: [TP1,TP2,OPS,SANDBOX]
+    Default: {{ Environment }}
+# Make this a map or parameter store
+  DevOpsBucket:
+    Description: Cloudformation S3 Bucket
+    Type: String
+    Default: ParameterStore
+# Make this a map or parameter store
+  SoftwareBucket:
+    Description: S3 bucket containing software installers
+    Type: String
+    Default: ParameterStore
+  InstanceName:
+    Description: Description of the server for tag
+    Type: String
+    Default: {{ InstanceName }}
+# Can be computed in the future based on if statement and other parameters
+  Hostname:
+    Description: Hostname prefix concatenated with the instance type identifiers (ex. GP01 for GP)
+    Type: String
+    MinLength: 1
+    Default: {{ Hostname }}
+# Delete this
+  EnvironmentSize:
+    Description: Mapping parameter that determines instance type
+    Type: String
+    Default: ParameterStore
+# Delete this
+  InstanceConfig:
+    Description: Description of the server for tag
+    Type: String
+    Default: ParameterStore
+  InstanceType:
+    Description: Default type of EC2 instance to launch
+    Type: String
+    Default: {{ InstanceType }}
+  Backups:
+    Description: RDS Backup length
+    Type: String
+    Default: {{ Backups }}
+  RootVolSize:
+  StorageType:
+    Description: Root Volume Storage Type
+    Type: String
+    Default: {{ StorageType }}
+  RootVolSize:
+    Description: Root Volume Size (GB)
+    Type: String
+    Default: {{ RootVolSize }}
+  AdditionalVolSize:
+    Description: EBS Volume Size (GB)
+    Type: String
+    Default: {{ AdditionalVolSize }}
+# Make this a map or parameter store
+  BlockEncryptionKey:
+    Description: KMS Key ARN used to encrypt EBS Volumes
+    Type: String
+    Default: None
+  AdditionalVol:
+    Description: Determines if more than one additional EBS Volume is added
+    Type: String
+    AllowedValues: [true, false]
+    Default: false
+  RootEBSEnc:
+    Description: Determines if the root EBS Volume is encrypted
+    Type: String
+    AllowedValues: [true, false]
+    Default: false
+# Make this a map or parameter store
+  KeyName:
+    Description: Name of the Key for ssh host connections
+    Type: String
+    Default: ParameterStore
+  SecurityGroup:
+    Description: Security group ID for this instance
+    Type: List<AWS::EC2::SecurityGroup::Id>
+    Default: {{ SecurityGroup }}
+  AmiId:
+    Description: AMI id for this instance
+    Type: String
+    Default: {{ AmiId }}
+# Make this a map or parameter store
+  DomainName:
+    Description: The domain to join the machine to
+    Type: String
+    MinLength: 1
+    Default: ParameterStore
+# Make this a map or parameter store
+  DomainController:
+    Description: The server addresses for joining the domain
+    Type: String
+    MinLength: 1
+    Default: ParameterStore
+# Make this a map or parameter store
+  OuPath:
+    Description: The organizational unit for the domain account
+    Type: String
+    MinLength: 1
+    Default: ParameterStore
+# Make this a map or parameter store
+  ExploitDomainAccount:
+    Description: Your exploit domain administrator account
+    Type: String
+    MinLength: 1
+    Default: ParameterStore
+# Make this a map or parameter store
+  ExploitDomainAccountPW:
+    Description: Password for your exploit domain administrator account
+    Type: String
+    NoEcho: true
+    MinLength: 1
+    Default: ParameterStore
+# Make this a map or parameter store
+  CFEndpoint:
+    Description: CloudFormation Endpoint
+    Type: String
+    MinLength: 1
+    Default: ParameterStore
+# Make this a map or parameter store
+  RoleName:
+    Description: IAM Instance Role/Profile to attach to instance
+    Type: String
+    MinLength: 1
+    Default: ParameterStore
+  ChefRole:
+    Description: Role for chef rules
+    Type: String
+    MinLength: 1
+    Default: ParameterStore
+  MissionOwner:
+    Description: Server owner based on mission
+    Type: String
+    MinLength: 1
+    Default: {{ MissionOwner }}
+  Office:
+    Description: Organizing entity for a group of products (for billing purposes)
+    Type: String
+    MinLength: 1
+    Default: {{ Office }}
+  Product:
+    Description: Collection unit for AWS costs within an Office (for billing purposes)
+    Type: String
+    MinLength: 1
+    Default: {{ Product }}
+  ServerType:
+    Description: Server type or category
+    Type: String
+    MinLength: 1
+    Default: {{ ServerType }}
+  Startup:
+    Description: Time to start the server every morning
+    Type: String
+    MinLength: 1
+    Default: {{ Startup }}
+  Shutdown:
+    Description: Time to shut down the server every evening
+    Type: String
+    MinLength: 1
+    Default: {{ Shutdown }}
+  Schedule:
+    Description: describes the current schedule state; Off, Scheduled, AlwaysOn.
+    Type: String
+    AllowedValues : [SatSun, MonTueWedThuFri, Off, Scheduled, AlwaysOn]
+    MinLength: 1
+    Default: {{ Schedule }}
+  JiraTicket:
+    Description: Jira ticket Number associated with resource creation
+    Type: String
+    MinLength: 1
+    Default: {{ JiraTicket }}
+  WebAdaptorName:
+    Description: Jira ticket Number associated with resource creation
+    Type: String
+    MinLength: 1
+    Default: {{ WebAdaptorName }}
+#Database Specific Parameters
+  DBEngine:
+    Default: Database Type (postgres, SQLServer, Oracle, etc)
+    Type: String
+    Default: {{ OS }}
+  DBEngineVersion:
+    Description: Database Version
+    Type: String
+    Default: {{ Version }}
+  DBUsername:
+    Description: Database Username
+    Type: String
+    Default: foobar
+  DBPassword:
+    Description: Database Password
+    Type: String
+    NoEcho: true
+    Default: foobar
+  Backups:
+    Description: Number of days back to perform automated backups
+    Type: String
+    Default: 7
+  ClapOn:
+    Description: Database Workload Type (general, publication, production, etc)
+    Type: String
+    Default: 700
+  ClapOff:
+    Description: Database Workload Type (general, publication, production, etc)
+    Type: String
+    Default: 2100
+  WorkloadType:
+    Description: Database Workload Type (general, publication, production, etc)
+    Type: String
+    Default: {{ WorkloadType }}
+
+Conditions:
+  IsGovCloud: !Equals [!Ref CloudEnvironment, GovCloud]
+  IsSQLServer: !Equals [!Ref DBEngine, sqlserver-ee]
+  IsEBSEncrypted: !Not [!Equals [!Ref BlockEncryptionKey, None]]
+  IsEncrypted: !Not [!Equals [!Ref BlockEncryptionKey, None]]
+  IsAddVol: !Equals [!Ref AdditionalVol, true]
+  IsRootEBSEncrypted: !And [!Equals [!Ref RootEBSEnc, true], !Condition IsEBSEncrypted]
+
+Mappings:
+  Endpoints:
+    GovCloud:
+      CF: https://cloudformation.us-gov-west-1.amazonaws.com
+      S3: https://s3-us-gov-west-1.amazonaws.com
+    UC2S:
+      CF: https://cloudformation.us-west-2.amazonaws.com
+      S3: https://s3-us-west-2.amazonaws.com
+    SC2S:
+      CF: https://cloudformation.us-isob-east-1.sc2s.sgov.gov
+      S3: https://s3.us-isob-east-1.sc2s.sgov.gov
+    C2S:
+      CF: https://cloudformation.us-iso-east-1.c2s.ic.gov
+      S3: https://s3.us-iso-east-1.c2s.ic.gov
+
+Resources:
+  CurrentStackWaitHandle:
+    Type: AWS::CloudFormation::WaitConditionHandle
+  CurrentStackWaitCondition:
+    Type: AWS::CloudFormation::WaitCondition
+    DependsOn: {{ InstanceName }}
+    Properties:
+      Handle: !Ref CurrentStackWaitHandle
+      Timeout: 900
+{% endblock content %}

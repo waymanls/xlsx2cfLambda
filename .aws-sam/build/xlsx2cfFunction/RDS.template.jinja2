@@ -1,0 +1,49 @@
+
+########################################################################################
+#                                     DATABASES                                        #
+########################################################################################
+  {{ InstanceName }}:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AutoMinorVersionUpgrade: false
+      Engine: {{ OS }}
+      EngineVersion: {{ Version }}
+      AllocatedStorage: {{ RootVolSize }}
+      StorageType: {{ StorageType }}
+      DBInstanceClass: {{ InstanceType }}
+      AvailabilityZone: {{ AvailabilityZone }}
+      BackupRetentionPeriod: {{ Backups }}
+      DBInstanceIdentifier: {{ InstanceName }}
+      VPCSecurityGroups: {{ SecurityGroup }}
+      DBSubnetGroupName: {{ SubnetId }}
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      KmsKeyId: !If [IsEncrypted, !Ref BlockEncryptionKey, !Ref "AWS::NoValue"]
+      StorageEncrypted: !If [IsEncrypted, True, False]
+      LicenseModel: !If [IsSQLServer, "license-included", !Ref "AWS::NoValue"]
+      Tags:
+      - Key: Name
+        Value: {{ InstanceName }}
+      - Key: Environment
+        Value: {{ Environment }}
+      - Key: ArchitectureID
+        Value: {{ ArchitectureID }}
+      - Key: MissionOwner
+        Value: {{ MissionOwner }}
+      - Key: Office
+        Value: {{ Office }}
+      - Key: Product
+        Value: {{ Product }}
+      - Key: WorkloadType
+        Value: {{ WorkloadType }}
+      - Key: Startup
+        Value: {{ Startup }}
+      - Key: Shutdown
+        Value: {{ Shutdown }}
+      - Key: Schedule
+        Value: {{ Schedule }}
+      - Key: ClapOn 
+        Value: !Ref ClapOn
+      - Key: ClapOff 
+        Value: !Ref ClapOff
+    DeletionPolicy: Snapshot
