@@ -7,7 +7,6 @@
     Properties:
       AutoMinorVersionUpgrade: false
       Engine: {{ OS }}
-      EnvironmentName: {{ Environment }}
       EngineVersion: {{ Version }}
       AllocatedStorage: {{ RootVolSize }}
       StorageType: {{ StorageType }}
@@ -19,15 +18,6 @@
       DBSubnetGroupName: {{ SubnetId }}
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
-      ArchitectureID: {{ ArchitectureID }}
-      MissionOwner: {{ MissionOwner }}
-      Product: {{ Product }}
-      WorkloadType: {{ WorkloadType }}
-      Startup: {{ Startup }}
-      Shutdown: {{ Shutdown }}
-      Schedule: {{ Schedule }}
-      ClapOn: 700
-      ClapOff: 2100
       KmsKeyId: !If [IsEncrypted, !Ref BlockEncryptionKey, !Ref "AWS::NoValue"]
       StorageEncrypted: !If [IsEncrypted, True, False]
       LicenseModel: !If [IsSQLServer, "license-included", !Ref "AWS::NoValue"]
