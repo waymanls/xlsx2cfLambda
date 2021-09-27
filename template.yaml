@@ -37,11 +37,6 @@ Resources:
           - logs:CreateLogStream
           - logs:PutLogEvents
           Resource: 'arn:aws:logs:us-east-1:490874705518:log-group:/aws/lambda/*'
-        - Sid: xlsx2cfDescribeSGsPolicy
-          Effect: Allow
-          Action:
-          - logs:PutLogEvents
-          Resource: '*'
         - Sid: xlsx2cfCloudFormationPolicy
           Effect: Allow
           Action:
