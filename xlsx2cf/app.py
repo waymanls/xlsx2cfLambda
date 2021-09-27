@@ -38,8 +38,8 @@ def getDatafromSheet(row, ticketNumber):
 	resourceDict['Version'] = row[6]
 	resourceDict['InstanceType'] = row[7]
 	resourceDict['StorageType'] = row[8]
-	resourceDict['Backups'] = row[9]
-	resourceDict['RootVolSize'] = row[10]
+	resourceDict['Backups'] = int(row[9])
+	resourceDict['RootVolSize'] = int(row[10])
 	resourceDict['CloudEnvironment'] = row[11]
 	resourceDict['SubnetId'] = row[12]
 	resourceDict['Environment'] = row[13]
