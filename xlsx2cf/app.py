@@ -106,6 +106,7 @@ def buildStack(cfTemplate,jiraTicket):
 	Create CloudFormation stack using template generated in genTemplate()
 	"""
 	client = boto3.client('cloudformation')
+	stack_name = jiraTicket + date.isoformat(date.today())
 	try:
 		response = client.validate_template(TemplateBody=cfTemplate)
 	except botocore.exceptions.ClientError as err:

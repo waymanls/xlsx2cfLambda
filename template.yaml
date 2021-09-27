@@ -39,13 +39,18 @@ Resources:
         - Sid: xlsx2cfDescribeSGsPolicy
           Effect: Allow
           Action:
-          - ec2:DescribeSecurityGroups
           - logs:PutLogEvents
           Resource: '*'
         - Sid: xlsx2cfCloudFormationPolicy
           Effect: Allow
           Action:
           - cloudformation:*
+          Resource: '*'
+        - Sid: xlsx2cfEC2RDSPolicy
+          Effect: Allow
+          Action:
+          - ec2:*
+          - rds:*
           Resource: '*'
       Events:
         ObjectPutEvent:
