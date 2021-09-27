@@ -159,7 +159,7 @@
       IamInstanceProfile: !Ref RoleName
       NetworkInterfaces:
         - DeviceIndex: '0'
-          GroupSet: '[{{ SecurityGroup }}']
+          GroupSet: ['{{ SecurityGroup }}']
           SubnetId: {{ SubnetId }}
       UserData:
         Fn::Base64: !Sub
