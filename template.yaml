@@ -11,6 +11,10 @@ Globals:
     Timeout: 300
 
 Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "xlsx2cf-demo-bucket"
   xlsx2cfFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -24,19 +28,18 @@ Resources:
           Effect: Allow
           Action:
           - s3:GetObject
-          #Resource: 'arn:aws:s3:::qtcvoo1/*'
-          Resource: !Join ["/", [!GetAtt Bucket.Arn, "*"]]
+          Resource: 'arn:aws:s3:::xlsx2cf-demo-bucket/*'
         - Sid: xlsx2cfCreateLogGroupPolicy
           Effect: Allow
           Action:
           - logs:CreateLogGroup
-          Resource: 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*'
+          Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
         - Sid: xlsx2cfCreateLogStreamPolicy
           Effect: Allow
           Action:
           - logs:CreateLogStream
           - logs:PutLogEvents
-          Resource: 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*'
+          Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*"
         - Sid: xlsx2cfCloudFormationPolicy
           Effect: Allow
           Action:
@@ -54,10 +57,6 @@ Resources:
           Properties:
             Bucket: !Ref Bucket
             Events: s3:ObjectCreated:*
-  Bucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: "qtcvoo1"
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
