@@ -56,16 +56,6 @@ def getDatafromSheet(row, ticketNumber):
 	resourceDict['SecurityGroup'] = row[24]
 	resourceDict['WorkloadType'] = row[25]
 	resourceDict['JiraTicket'] = ticketNumber
-	if not resourceDict:
-		print("=================================================================================")
-		print("                                     ERROR                                       ")
-		print("=================================================================================")
-		print(name + " not found in spreadsheet. Please verify that name is correct")
-		print("")
-		print("")
-		print("Exiting...")
-		print("=================================================================================")
-		sys.exit()
 
 	return resourceDict
 
@@ -111,24 +101,14 @@ def buildStack(cfTemplate,jiraTicket):
 		response = client.validate_template(TemplateBody=cfTemplate)
 	except botocore.exceptions.ClientError as err:
 		print(err)
-	#print(cfTemplate)
 	try:
-		response = client.create_stack(StackName=jiraTicket,TemplateBody=cfTemplate,DisableRollback=True)
+		response = client.create_stack(StackName=stack_name,TemplateBody=cfTemplate,DisableRollback=True)
 	except botocore.exceptions.ClientError as err:
 		print(err)
-	#response = client.create_stack(StackName=jiraTicket,TemplateBody=cfTemplate,DisableRollback=True)
 
 	return response
 
-def fileCheck():
-	"""
-	Check to see if jinja template and parameter files are in place
-	"""
-	if not os.path.exists("GovCloud-Automation-Test-Servers.json") or not os.path.exists("Server.template.jinja2"):
-		sys.exit()
-
 def lambda_handler(event, context):
-    #print("Received event: " + json.dumps(event, indent=2))
 
     # Get the object from the event and show its content type
     bucket = event['Records'][0]['s3']['bucket']['name']

@@ -159,7 +159,7 @@
       IamInstanceProfile: !Ref RoleName
       NetworkInterfaces:
         - DeviceIndex: '0'
-          GroupSet: {{ SecurityGroup }}
+          GroupSet: '[{{ SecurityGroup }}']
           SubnetId: {{ SubnetId }}
       UserData:
         Fn::Base64: !Sub
@@ -235,7 +235,7 @@
   EBSVolume1:
     Type: "AWS::EC2::Volume"
     Properties:
-      AvailabilityZone: !Ref AvailabilityZone
+      AvailabilityZone: {{ AvailabilityZone }}
       Size: {{ RootVolSize }}
       VolumeType : gp2
       Encrypted: !If [IsEBSEncrypted, true, false]
