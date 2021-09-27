@@ -14,7 +14,7 @@
       AvailabilityZone: {{ AvailabilityZone }}
       BackupRetentionPeriod: {{ Backups }}
       DBInstanceIdentifier: {{ InstanceName }}
-      VPCSecurityGroups: {{ SecurityGroup }}
+      VPCSecurityGroups: ['{{ SecurityGroup }}']
       DBSubnetGroupName: {{ SubnetId }}
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
