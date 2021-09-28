@@ -44,7 +44,7 @@ def getDatafromSheet(row, ticketNumber):
 	resourceDict['InstanceName'] = row[14]
 	resourceDict['Hostname'] = row[15]
 	resourceDict['WebAdaptorName'] = row[16]
-	resourceDict['AdditionalVolSize'] = row[17]
+	resourceDict['AdditionalVolSize'] = int(row[17])
 	resourceDict['MissionOwner'] = row[18]
 	resourceDict['Office'] = row[19]
 	resourceDict['Product'] = row[20]

@@ -46,11 +46,16 @@ Resources:
           Action:
           - cloudformation:*
           Resource: '*'
+        - Sid: xlsx2cfIamPolicy
+          Effect: Allow
+          Action:
+          - iam:PassRole
+          Resource: '*'
         - Sid: xlsx2cfEC2RDSPolicy
           Effect: Allow
           Action:
-          - ec2:*
           - rds:*
+          - ec2:*
           Resource: '*'
       Events:
         ObjectPutEvent:
