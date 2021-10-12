@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  xlsx2cfLambda
+
+  Sample SAM Template for xlsx2cfLambda
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 300
+
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "xlsx2cfdemobucket"
+  xlsx2cfFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: xlsx2cf/
+      Description: Lambda function to generate CloudFormation temlate and Stack from Excel Spreadsheet
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Policies:
+      - Statement:
+        - Sid: xlsx2cfS3Policy
+          Effect: Allow
+          Action:
+          - s3:GetObject
+          Resource: 'arn:aws:s3:::xlsx2cfdemobucket/*'
+        - Sid: xlsx2cfCreateLogGroupPolicy
+          Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+        - Sid: xlsx2cfCreateLogStreamPolicy
+          Effect: Allow
+          Action:
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*"
+        - Sid: xlsx2cfCloudFormationPolicy
+          Effect: Allow
+          Action:
+          - cloudformation:*
+          Resource: '*'
+        - Sid: xlsx2cfIamPolicy
+          Effect: Allow
+          Action:
+          - iam:PassRole
+          Resource: '*'
+        - Sid: xlsx2cfEC2RDSPolicy
+          Effect: Allow
+          Action:
+          - rds:*
+          - ec2:*
+          Resource: '*'
+      Events:
+        ObjectPutEvent:
+          Type: S3 # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Bucket: !Ref Bucket
+            Events: s3:ObjectCreated:*
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  xlsx2cfFunction:
+    Description: "xlsx2cf Lambda Function ARN"
+    Value: !GetAtt xlsx2cfFunction.Arn
+  xlsx2cfIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt xlsx2cfFunctionRole.Arn
