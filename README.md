@@ -1,13 +1,26 @@
 # xlsx2cfLambda
 
-This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes the following files and folders.
+## Application description
+This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. The applicaton generated from this file contains 3 parts
 
-- hello_world - Code for the application's Lambda function.
+- S3 bucket - Excel spreadsheets containing server build details are uploaded here
+- CloudWatch Event Rule - This rule monitors PUT actions on the S3 bucket and triggers the subsequent Lambda function
+- Lambda Function - This function parses the Excel spreadsheet, generates corresponding CloudFromation template, and executes create-stack command
+- CloudFormation - A Cloudformation stack executes and provisions resources defined in the Excel spreadsheet
+
+The Lambda function utilizes several jinja2 boilerplate CloudFormation templates to produce a 'master' template containing definitions for all of the resources defined in the Excel spreadsheet. Extending this application to support more resources requires creation of additional boilerplate template which define those resources (ex. s3template.yaml)
+
+It includes the following files and folders.
+
+- xlsx2cf - Code for the application's Lambda function.
+- - EC2.template.jinja2 - Jinja2 boilerplate template to produce EC2 resources.
+- - RDS.template.jinja2 - Jinja2 boilerplate template to produce RDS resources.
+- - Server.template.jinja2 - Jinja2 boilerplate template to produce non-resource sections of a CloudFormation Template (Parameters, Mappings, etc.).
 - events - Invocation events that you can use to invoke the function.
-- tests - Unit tests for the application code. 
+- tests - Unit tests and sample files for the application code. 
 - template.yaml - A template that defines the application's AWS resources.
 
-The application uses several AWS resources, including Lambda functions and an API Gateway API. These resources are defined in the `template.yaml` file in this project. You can update the template to add AWS resources through the same deployment process that updates your application code.
+The application uses several AWS resources, including Lambda functions, CloudWatch Events and an S3 bucket. These resources are defined in the `template.yaml` file in this project. You can update the template to add AWS resources through the same deployment process that updates your application code.
 
 If you prefer to use an integrated development environment (IDE) to build and test your application, you can use the AWS Toolkit.  
 The AWS Toolkit is an open source plug-in for popular IDEs that uses the SAM CLI to build and deploy serverless applications on AWS. The AWS Toolkit also adds a simplified step-through debugging experience for Lambda function code. See the following links to get started.
@@ -26,7 +39,7 @@ The AWS Toolkit is an open source plug-in for popular IDEs that uses the SAM CLI
 
 ## Deploy the sample application
 
-The Serverless Application Model Command Line Interface (SAM CLI) is an extension of the AWS CLI that adds functionality for building and testing Lambda applications. It uses Docker to run your functions in an Amazon Linux environment that matches Lambda. It can also emulate your application's build environment and API.
+The Serverless Application Model Command Line Interface (SAM CLI) is an extension of the AWS CLI that adds functionality for building and testing Lambda applications. It can use Docker to run your functions in an Amazon Linux environment that matches Lambda. It can also emulate your application's build environment and API.
 
 To use the SAM CLI, you need the following tools.
 
@@ -49,7 +62,6 @@ The first command will build the source of your application. The second command 
 * **Allow SAM CLI IAM role creation**: Many AWS SAM templates, including this example, create AWS IAM roles required for the AWS Lambda function(s) included to access AWS services. By default, these are scoped down to minimum required permissions. To deploy an AWS CloudFormation stack which creates or modifies IAM roles, the `CAPABILITY_IAM` value for `capabilities` must be provided. If permission isn't provided through this prompt, to deploy this example you must explicitly pass `--capabilities CAPABILITY_IAM` to the `sam deploy` command.
 * **Save arguments to samconfig.toml**: If set to yes, your choices will be saved to a configuration file inside the project, so that in the future you can just re-run `sam deploy` without parameters to deploy changes to your application.
 
-You can find your API Gateway Endpoint URL in the output values displayed after deployment.
 
 ## Use the SAM CLI to build and test locally
 
@@ -59,33 +71,16 @@ Build your application with the `sam build --use-container` command.
 xlsx2cfLambda$ sam build --use-container
 ```
 
-The SAM CLI installs dependencies defined in `hello_world/requirements.txt`, creates a deployment package, and saves it in the `.aws-sam/build` folder.
+The SAM CLI installs dependencies defined in `xlsx2cf/requirements.txt`, creates a deployment package, and saves it in the `.aws-sam/build` folder.
 
 Test a single function by invoking it directly with a test event. An event is a JSON document that represents the input that the function receives from the event source. Test events are included in the `events` folder in this project.
 
 Run functions locally and invoke them with the `sam local invoke` command.
 
 ```bash
-xlsx2cfLambda$ sam local invoke HelloWorldFunction --event events/event.json
+xlsx2cfLambda$ sam local invoke xlsx2cf --event events/event.json
 ```
 
-The SAM CLI can also emulate your application's API. Use the `sam local start-api` to run the API locally on port 3000.
-
-```bash
-xlsx2cfLambda$ sam local start-api
-xlsx2cfLambda$ curl http://localhost:3000/
-```
-
-The SAM CLI reads the application template to determine the API's routes and the functions that they invoke. The `Events` property on each function's definition includes the route and method for each path.
-
-```yaml
-      Events:
-        HelloWorld:
-          Type: Api
-          Properties:
-            Path: /hello
-            Method: get
-```
 
 ## Add a resource to your application
 The application template uses AWS Serverless Application Model (AWS SAM) to define application resources. AWS SAM is an extension of AWS CloudFormation with a simpler syntax for configuring common serverless application resources such as functions, triggers, and APIs. For resources not included in [the SAM specification](https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md), you can use standard [AWS CloudFormation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html) resource types.
@@ -97,7 +92,7 @@ To simplify troubleshooting, SAM CLI has a command called `sam logs`. `sam logs`
 `NOTE`: This command works for all AWS Lambda functions; not just the ones you deploy using SAM.
 
 ```bash
-xlsx2cfLambda$ sam logs -n HelloWorldFunction --stack-name xlsx2cfLambda --tail
+xlsx2cfLambda$ sam logs -n xlsx2cf --stack-name xlsx2cfLambda --tail
 ```
 
 You can find more information and examples about filtering Lambda function logs in the [SAM CLI Documentation](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-logging.html).
@@ -128,3 +123,10 @@ aws cloudformation delete-stack --stack-name xlsx2cfLambda
 See the [AWS SAM developer guide](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/what-is-sam.html) for an introduction to SAM specification, the SAM CLI, and serverless application concepts.
 
 Next, you can use AWS Serverless Application Repository to deploy ready to use Apps that go beyond hello world samples and learn how authors developed their applications: [AWS Serverless Application Repository main page](https://aws.amazon.com/serverless/serverlessrepo/)
+
+## Limitations
+
+This application is currently limited to producing the following resources
+
+- Amazon RDS databases
+- Amazon EC2 (Windows) Instances
